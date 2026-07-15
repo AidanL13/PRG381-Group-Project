@@ -8,16 +8,22 @@ package project;
  *
  * @author Michael - Uni
  */
-public class Session {
-        public static String currentUser = null;
-        public static String currentRole = null;
-
-        public static boolean isLoggedIn() {
-            return currentUser != null;
-        }
-
-        public static void clear() {
-            currentUser = null;
-            currentRole = null;
+public final class Session {
+ 
+    public static String currentUser;
+    public static String currentRole;
+ 
+    private Session() {
+      
+    }
+ 
+    public static boolean isSupervisor() {
+        return "SUPERVISOR".equalsIgnoreCase(currentRole);
+    }
+ 
+    public static void clear() {
+        currentUser = null;
+        currentRole = null;
     }
 }
+ 
