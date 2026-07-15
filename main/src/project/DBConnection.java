@@ -37,7 +37,7 @@ public class DBConnection {
     //create user table (only runs once)
     public void userTable(){
         try{
-            String query = "Create Table Users(Username varchar(20), " + "Email varchar(20), Password varchar(20), Role varchar(20))";
+            String query = "Create Table Users(Username varchar(20), " + "Email varchar(20) UNIQUE, Password varchar(20), Role varchar(20))";
             this.con.createStatement().execute(query);
         }catch(SQLException ex){
             ex.printStackTrace();
@@ -71,5 +71,29 @@ public class DBConnection {
             ex.printStackTrace();
         }
         return role;
+    }
+    
+    public boolean isValidPassword(String password) {
+        if (password.length() < 8) return true;
+        if (!password.matches(".*[A-Z].*")) return true;   // at least one uppercase
+        if (!password.matches(".*[0-9].*")) return true;   // at least one digit
+        if (!password.matches(".*[!@#$%^&*].*")) return true; // at least one special char
+        return false;
+    }
+    
+    public boolean emailExists(String email) {
+        boolean exists = false;
+        try {
+            String query = "SELECT * FROM Users WHERE Email=?";
+            PreparedStatement ps = con.prepareStatement(query);
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+                if(rs.next()){
+                exists = true;
+                }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return exists;
     }
 }

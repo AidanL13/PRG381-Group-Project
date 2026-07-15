@@ -34,8 +34,6 @@ public class Registration extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         tfUsername = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
-        tfPassword = new javax.swing.JTextField();
-        tfConfirmPassword = new javax.swing.JTextField();
         tfEmail = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
@@ -45,6 +43,8 @@ public class Registration extends javax.swing.JFrame {
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
+        tfPassword = new javax.swing.JPasswordField();
+        tfConfirmPassword = new javax.swing.JPasswordField();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
 
@@ -55,8 +55,12 @@ public class Registration extends javax.swing.JFrame {
         jLabel2.setBackground(new java.awt.Color(255, 102, 102));
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/project/icons/user.png"))); // NOI18N
 
+        tfUsername.setToolTipText("Username");
+
         jLabel3.setBackground(new java.awt.Color(255, 102, 102));
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/project/icons/padlock.png"))); // NOI18N
+
+        tfEmail.setToolTipText("Email");
 
         jLabel4.setBackground(new java.awt.Color(255, 102, 102));
         jLabel4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/project/icons/email.png"))); // NOI18N
@@ -89,6 +93,10 @@ public class Registration extends javax.swing.JFrame {
         jButton2.setContentAreaFilled(false);
         jButton2.addActionListener(this::jButton2ActionPerformed);
 
+        tfPassword.setToolTipText("Password");
+
+        tfConfirmPassword.setToolTipText("Confirm Password");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -116,12 +124,11 @@ public class Registration extends javax.swing.JFrame {
                                     .addComponent(jLabel3)
                                     .addComponent(jLabel7))
                                 .addGap(18, 18, 18)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jLabel6)
-                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                        .addComponent(tfConfirmPassword)
-                                        .addComponent(tfPassword)
-                                        .addComponent(cbRoles, 0, 218, Short.MAX_VALUE))))))
+                                    .addComponent(cbRoles, 0, 218, Short.MAX_VALUE)
+                                    .addComponent(tfPassword)
+                                    .addComponent(tfConfirmPassword)))))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(124, 124, 124)
                         .addComponent(jLabel8))
@@ -149,7 +156,7 @@ public class Registration extends javax.swing.JFrame {
                     .addComponent(tfPassword))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tfConfirmPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(20, 20, 20)
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -225,8 +232,13 @@ public class Registration extends javax.swing.JFrame {
             return;
         }
         
-        if(!isValidPassword(password)){
+        if(db.isValidPassword(password)){
             JOptionPane.showMessageDialog(this, "Password must be 8+ characters, include an uppercase letter, a number, and a special character.", "Weak Password", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        if(db.emailExists(email)){
+            JOptionPane.showMessageDialog(this, "An account with this email already exists.", "Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -240,13 +252,7 @@ public class Registration extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private boolean isValidPassword(String password) {
-        if (password.length() < 8) return false;
-        if (!password.matches(".*[A-Z].*")) return false;   // at least one uppercase
-        if (!password.matches(".*[0-9].*")) return false;   // at least one digit
-        if (!password.matches(".*[!@#$%^&*].*")) return false; // at least one special char
-        return true;
-    }
+
     
     /**
      * @param args the command line arguments
@@ -297,9 +303,9 @@ public class Registration extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JTextField tfConfirmPassword;
+    private javax.swing.JPasswordField tfConfirmPassword;
     private javax.swing.JTextField tfEmail;
-    private javax.swing.JTextField tfPassword;
+    private javax.swing.JPasswordField tfPassword;
     private javax.swing.JTextField tfUsername;
     // End of variables declaration//GEN-END:variables
 }
