@@ -5,32 +5,35 @@
 package project;
 
 
-public class Cleaner {
-    
-    private String cleanerID;
-    private String name;
-    private String surname;
-    private String department;
-    
-    //Constructer
-    public Cleaner(String cleanerID,String name,String surname,String department)
-    {
-      this.cleanerID=cleanerID;
-      this.name=name;
-      this.surname=surname;
-      this.department=department;
+public class Cleaner extends person {
+ 
+    private String department; // optional, per the brief
+ 
+    public Cleaner() {
+        super();
     }
-    
-    //Getters and Setters for the cleaners
-    public String getCleanerId() { return cleanerID; }
-    public void setCleanerId(String cleanerId) { this.cleanerID= cleanerId; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getSurname() { return surname; }
-    public void setSurname(String surname) { this.surname = surname; }
-
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
+ 
+    public Cleaner(int id, String firstName, String lastName, String email, String phone, String department) {
+        super(id, firstName, lastName, email, phone);
+        this.department = department;
+    }
+ 
+    public String getDepartment() {
+        return department;
+    }
+ 
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+ 
+    /** Polymorphic override required by the abstract Person class. */
+    @Override
+    public String describeRole() {
+        return "Cleaner" + (department != null ? " assigned to " + department : " (unassigned)");
+    }
+ 
+    @Override
+    public String toString() {
+        return getFullName() + (department != null ? " - " + department : "");
+    }
 }
