@@ -22,27 +22,31 @@ import java.util.regex.Pattern;
  */
 public class DBConnection {
  
-    
-    private static final String DB_URL      = "jdbc:postgresql://localhost:5432/cleaning_inventory_db";
-    private static final String DB_USER     = "postgres";
-    private static final String DB_PASSWORD = "your_password_here";
-    
+    // Relative path to the existing "invSystemDB" folder in your project.
+    // "create=true" is safe even if the database already exists - Derby
+    // just opens it normally in that case.
+    private static final String DB_URL = "jdbc:derby:invSystemDB;create=true";
  
     private Connection connection;
  
-
+    /**
+     * Loads the embedded Derby driver, opens the connection, and makes sure
+     * all required tables exist (creating + seeding them on first run only).
+     * Matches the existing call: db.connect();
+     */
     public void connect() throws ClassNotFoundException {
-        Class.forName("org.postgresql.Driver");
+        Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
         try {
-            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            System.out.println("Database connected successfully.");
+            connection = DriverManager.getConnection(DB_URL);
+            System.out.println("Connected to embedded Derby database: invSystemDB");
+            DBInitializer.initializeSchema(connection);
         } catch (SQLException e) {
-            System.err.println("Failed to connect to the database. Check URL/username/password.");
+            System.err.println("Failed to connect to the Derby database.");
             e.printStackTrace();
         }
     }
  
-    
+  
     private Connection getConnection() {
         try {
             if (connection == null || connection.isClosed()) {
@@ -54,7 +58,7 @@ public class DBConnection {
         return connection;
     }
  
-   
+
     public String login(String username, String password) {
         String sql = "SELECT role FROM users WHERE username = ? AND password = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -71,7 +75,7 @@ public class DBConnection {
         return null;
     }
  
- 
+   
     public boolean isValidPassword(String password) {
         if (password == null || password.length() < 8) {
             return false;
@@ -82,7 +86,7 @@ public class DBConnection {
         return hasUpper && hasDigit && hasSpecial;
     }
  
-
+   
     public boolean emailExists(String email) {
         String sql = "SELECT 1 FROM users WHERE email = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -110,7 +114,7 @@ public class DBConnection {
         return false;
     }
  
-   
+  
     public boolean addUser(String username, String email, String password, String role) {
         if (role == null || role.trim().isEmpty()) {
             System.err.println("Cannot register user with a blank role.");
@@ -131,7 +135,7 @@ public class DBConnection {
         }
     }
  
-    
+ 
     public void disconnect() {
         try {
             if (connection != null && !connection.isClosed()) {
