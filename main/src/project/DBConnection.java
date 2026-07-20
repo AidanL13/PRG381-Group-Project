@@ -134,6 +134,196 @@ public class DBConnection {
             return false;
         }
     }
+    
+    public String issueStock(int materialId, int cleanerId, int quantity) {
+    Connection conn = getConnection();
+    if (conn == null) {
+        return "Database connection is not active.";
+    }
+
+    String checkSql = "SELECT quantity_available FROM materials WHERE material_id = ?";
+    String deductSql = "UPDATE materials SET quantity_available = quantity_available - ? WHERE material_id = ?";
+    String insertSql = "INSERT INTO stock_issuances (material_id, cleaner_id, quantity_issued, issued_by, notes) VALUES (?, ?, ?, ?, ?)";
+    String userIdSql = "SELECT user_id FROM users WHERE username = ?";
+
+    try {
+        conn.setAutoCommit(false);
+
+        int available;
+        try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
+            ps.setInt(1, materialId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    conn.rollback();
+                    return "Material ID " + materialId + " does not exist.";
+                }
+                available = rs.getInt("quantity_available");
+            }
+        }
+
+        if (available < quantity) {
+            conn.rollback();
+            return "Cannot issue " + quantity + " unit(s). Only " + available + " available.";
+        }
+
+        Integer issuedBy = null;
+        if (Session.currentUser != null) {
+            try (PreparedStatement ps = conn.prepareStatement(userIdSql)) {
+                ps.setString(1, Session.currentUser);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        issuedBy = rs.getInt("user_id");
+                    }
+                }
+            }
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(deductSql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, materialId);
+            ps.executeUpdate();
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+            ps.setInt(1, materialId);
+            ps.setInt(2, cleanerId);
+            ps.setInt(3, quantity);
+            if (issuedBy != null) {
+                ps.setInt(4, issuedBy);
+            } else {
+                ps.setNull(4, java.sql.Types.INTEGER);
+            }
+            ps.setString(5, null);
+            ps.executeUpdate();
+        }
+
+        conn.commit();
+        return "SUCCESS";
+
+    } catch (SQLException e) {
+        try {
+            conn.rollback();
+        } catch (SQLException rollbackEx) {
+            rollbackEx.printStackTrace();
+        }
+        if ("23503".equals(e.getSQLState())) {
+            return "Cleaner ID " + cleanerId + " does not exist.";
+        }
+        e.printStackTrace();
+        return "Transaction failed: " + e.getMessage();
+    } finally {
+        try {
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+    public java.util.List<Object[]> getIssuanceHistory() {
+    java.util.List<Object[]> rows = new java.util.ArrayList<>();
+    Connection conn = getConnection();
+    if (conn == null) return rows;
+
+    String sql = "SELECT si.issuance_id, m.material_name, "
+               + "c.first_name || ' ' || c.last_name AS cleaner_name, "
+               + "si.quantity_issued, si.issue_date "
+               + "FROM stock_issuances si "
+               + "JOIN materials m ON si.material_id = m.material_id "
+               + "JOIN cleaners c ON si.cleaner_id = c.cleaner_id "
+               + "ORDER BY si.issue_date DESC";
+
+    try (PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            rows.add(new Object[]{
+                rs.getInt("issuance_id"),
+                rs.getString("material_name"),
+                rs.getString("cleaner_name"),
+                rs.getInt("quantity_issued"),
+                rs.getTimestamp("issue_date")
+            });
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return rows;
+}
+
+public java.util.List<Object[]> getInventoryReport() {
+    java.util.List<Object[]> rows = new java.util.ArrayList<>();
+    Connection conn = getConnection();
+    if (conn == null) return rows;
+
+    String sql = "SELECT material_id, material_name, quantity_available, reorder_level "
+               + "FROM materials ORDER BY material_name";
+
+    try (PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            rows.add(new Object[]{
+                rs.getInt("material_id"),
+                rs.getString("material_name"),
+                rs.getInt("quantity_available"),
+                rs.getInt("reorder_level")
+            });
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return rows;
+}
+
+public java.util.List<Object[]> getLowStockReport() {
+    java.util.List<Object[]> rows = new java.util.ArrayList<>();
+    Connection conn = getConnection();
+    if (conn == null) return rows;
+
+    String sql = "SELECT material_id, material_name, quantity_available, reorder_level "
+               + "FROM materials WHERE quantity_available <= reorder_level "
+               + "ORDER BY quantity_available ASC";
+
+    try (PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            rows.add(new Object[]{
+                rs.getInt("material_id"),
+                rs.getString("material_name"),
+                rs.getInt("quantity_available"),
+                rs.getInt("reorder_level")
+            });
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return rows;
+}
+
+public java.util.List<Object[]> getMaterialUsageReport() {
+    java.util.List<Object[]> rows = new java.util.ArrayList<>();
+    Connection conn = getConnection();
+    if (conn == null) return rows;
+
+    String sql = "SELECT m.material_id, m.material_name, "
+               + "COALESCE(SUM(si.quantity_issued), 0) AS total_issued "
+               + "FROM materials m "
+               + "LEFT JOIN stock_issuances si ON m.material_id = si.material_id "
+               + "GROUP BY m.material_id, m.material_name "
+               + "ORDER BY total_issued DESC";
+
+    try (PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            rows.add(new Object[]{
+                rs.getInt("material_id"),
+                rs.getString("material_name"),
+                rs.getInt("total_issued")
+            });
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return rows;
+}
  
  
     public void disconnect() {
