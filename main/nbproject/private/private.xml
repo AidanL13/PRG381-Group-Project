@@ -3,16 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/Registration.java</file>
             <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/Login.java</file>
+            <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/Registration.java</file>
             <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/DBConnection.java</file>
-            <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/IssuanceAndCleaner.java</file>
-            <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/User.java</file>
-            <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/Supplier.java</file>
-            <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/Cleaner.java</file>
-            <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/Role.java</file>
-            <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/Project.java</file>
-            <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/person.java</file>
+            <file>file:/C:/Users/Michael%20-%20Uni/Documents/GitHub/PRG381-Group-Project/main/src/project/Session.java</file>
         </group>
     </open-files>
 </project-private>

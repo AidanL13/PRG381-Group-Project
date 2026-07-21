@@ -232,7 +232,7 @@ public class Registration extends javax.swing.JFrame {
             return;
         }
         
-        if(db.isValidPassword(password)){
+        if(!db.isValidPassword(password)){
             JOptionPane.showMessageDialog(this, "Password must be 8+ characters, include an uppercase letter, a number, and a special character.", "Weak Password", JOptionPane.WARNING_MESSAGE);
             return;
         }
