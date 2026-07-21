@@ -57,6 +57,22 @@ public class DBConnection {
         }
         return connection;
     }
+
+    public Connection getOpenConnection() throws SQLException {
+        try {
+            if (connection == null || connection.isClosed()) {
+                connect();
+            }
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("Derby database driver could not be loaded.", e);
+        }
+
+        if (connection == null || connection.isClosed()) {
+            throw new SQLException("The database connection could not be opened.");
+        }
+
+        return connection;
+    }
  
 
     public String login(String username, String password) {
