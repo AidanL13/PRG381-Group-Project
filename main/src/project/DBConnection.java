@@ -351,4 +351,68 @@ public java.util.List<Object[]> getMaterialUsageReport() {
             e.printStackTrace();
         }
     }
+    public ResultSet getAllCleaners() {
+        String sql = "SELECT * FROM cleaners";
+        try {
+            return getOpenConnection().prepareStatement(sql).executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean addCleaner(int id, String firstName, String lastName, String department) {
+        String sql = "INSERT INTO cleaners (cleaner_id, first_name, last_name, department) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement ps = getOpenConnection().prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.setString(2, firstName);
+            ps.setString(3, lastName);
+            ps.setString(4, department);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updateCleaner(int id, String firstName, String lastName, String department) {
+        String sql = "UPDATE cleaners SET first_name = ?, last_name = ?, department = ? WHERE cleaner_id = ?";
+        try (PreparedStatement ps = getOpenConnection().prepareStatement(sql)) {
+            ps.setString(1, firstName);
+            ps.setString(2, lastName);
+            ps.setString(3, department);
+            ps.setInt(4, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteCleaner(int id) {
+        String sql = "DELETE FROM cleaners WHERE cleaner_id = ?";
+        try (PreparedStatement ps = getOpenConnection().prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public ResultSet searchCleaner(int id) {
+        String sql = "SELECT * FROM cleaners WHERE cleaner_id = ?";
+        try {
+            PreparedStatement ps = getOpenConnection().prepareStatement(sql);
+            ps.setInt(1, id);
+            return ps.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+ 
 }
+
+
