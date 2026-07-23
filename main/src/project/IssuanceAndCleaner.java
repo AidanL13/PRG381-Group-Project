@@ -4,6 +4,11 @@
  */
 package project;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author Masana
@@ -15,8 +20,38 @@ public class IssuanceAndCleaner extends javax.swing.JFrame {
     /**
      * Creates new form Cleaner_UI
      */
+    private DBConnection db;
     public IssuanceAndCleaner() {
         initComponents();
+    }
+    public void refreshTable() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0); // Clear current rows
+
+        if (db != null) {
+            try (ResultSet rs = db.getAllCleaners()) {
+                if (rs != null) {
+                    while (rs.next()) {
+                        model.addRow(new Object[]{
+                            rs.getInt("cleaner_id"),
+                            rs.getString("first_name"),
+                            rs.getString("last_name"),
+                            rs.getString("department")
+                        });
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // Helper method to clear all text fields
+    private void clearFields() {
+        jTextField1.setText("");
+        jTextField2.setText("");
+        jTextField3.setText("");
+        jTextField4.setText("");
     }
 
     /**
@@ -30,7 +65,6 @@ public class IssuanceAndCleaner extends javax.swing.JFrame {
 
         panel1 = new java.awt.Panel();
         panel2 = new java.awt.Panel();
-        lblUserLogIn = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -50,23 +84,15 @@ public class IssuanceAndCleaner extends javax.swing.JFrame {
 
         panel1.setBackground(new java.awt.Color(0, 102, 102));
 
-        lblUserLogIn.setText("Logged in as " + Session.currentUser);
-
         javax.swing.GroupLayout panel2Layout = new javax.swing.GroupLayout(panel2);
         panel2.setLayout(panel2Layout);
         panel2Layout.setHorizontalGroup(
             panel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel2Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(lblUserLogIn)
-                .addGap(84, 84, 84))
+            .addGap(0, 815, Short.MAX_VALUE)
         );
         panel2Layout.setVerticalGroup(
             panel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panel2Layout.createSequentialGroup()
-                .addGap(29, 29, 29)
-                .addComponent(lblUserLogIn)
-                .addContainerGap(39, Short.MAX_VALUE))
+            .addGap(0, 84, Short.MAX_VALUE)
         );
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -85,21 +111,25 @@ public class IssuanceAndCleaner extends javax.swing.JFrame {
         jButton1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jButton1.setText("Add Cleaner:");
         jButton1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         jButton2.setBackground(new java.awt.Color(0, 153, 153));
         jButton2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jButton2.setText("Update Cleaner:");
         jButton2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton2.addActionListener(this::jButton2ActionPerformed);
 
         jButton3.setBackground(new java.awt.Color(0, 153, 153));
         jButton3.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jButton3.setText("Delete Cleaner:");
         jButton3.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton3.addActionListener(this::jButton3ActionPerformed);
 
         jButton4.setBackground(new java.awt.Color(0, 153, 153));
         jButton4.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jButton4.setText("Search Cleaner:");
         jButton4.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jButton4.addActionListener(this::jButton4ActionPerformed);
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -190,6 +220,119 @@ public class IssuanceAndCleaner extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        //search logic 
+        String idStr = jTextField1.getText().trim();
+
+        if (idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a Cleaner ID to search.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(idStr);
+            try (ResultSet rs = db.searchCleaner(id)) {
+                if (rs != null && rs.next()) {
+                    jTextField2.setText(rs.getString("first_name"));
+                    jTextField3.setText(rs.getString("last_name"));
+                    jTextField4.setText(rs.getString("department"));
+                    JOptionPane.showMessageDialog(this, "Cleaner record found!", "Found", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "No cleaner found with ID: " + id, "Not Found", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Cleaner ID must be a valid whole number.", "Input Error", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // Add the cleaner 
+        String idStr = jTextField1.getText().trim();
+        String name = jTextField2.getText().trim();
+        String surname = jTextField3.getText().trim();
+        String department = jTextField4.getText().trim();
+
+        if (idStr.isEmpty() || name.isEmpty() || surname.isEmpty() || department.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill out all fields.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(idStr);
+            boolean success = db.addCleaner(id, name, surname, department);
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Cleaner added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                refreshTable();
+                clearFields();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add cleaner. Cleaner ID might already exist.", "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Cleaner ID must be a valid whole number.", "Input Error", JOptionPane.ERROR_MESSAGE);
+        }
+    
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // update cleaner logic 
+        String idStr = jTextField1.getText().trim();
+        String name = jTextField2.getText().trim();
+        String surname = jTextField3.getText().trim();
+        String department = jTextField4.getText().trim();
+
+        if (idStr.isEmpty() || name.isEmpty() || surname.isEmpty() || department.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill out all fields to update.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(idStr);
+            boolean success = db.updateCleaner(id, name, surname, department);
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Cleaner updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                refreshTable();
+                clearFields();
+            } else {
+                JOptionPane.showMessageDialog(this, "Update failed. Make sure the Cleaner ID exists.", "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Cleaner ID must be a valid whole number.", "Input Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        //delete logic 
+        String idStr = jTextField1.getText().trim();
+
+        if (idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the Cleaner ID to delete.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(idStr);
+            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete Cleaner ID " + id + "?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                boolean success = db.deleteCleaner(id);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Cleaner deleted successfully!", "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                    refreshTable();
+                    clearFields();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Delete failed. Cleaner ID not found.", "Database Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Cleaner ID must be a valid whole number.", "Input Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton3ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -230,7 +373,6 @@ public class IssuanceAndCleaner extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField4;
-    private javax.swing.JLabel lblUserLogIn;
     private java.awt.Panel panel1;
     private java.awt.Panel panel2;
     // End of variables declaration//GEN-END:variables
